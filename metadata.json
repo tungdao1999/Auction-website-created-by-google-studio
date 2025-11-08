@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Auction House",
+  "description": "A modern auction platform where buyers and sellers can trade goods. It features AI-powered description generation for sellers to enhance their listings.",
+  "requestFramePermissions": []
+}
