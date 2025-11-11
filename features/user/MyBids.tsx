@@ -2,6 +2,7 @@
 import React from 'react';
 import { Product, User } from '../../types';
 import { ProductCard } from '../auctions/ProductCard';
+import { getHighestBidder } from '../../utils/auctionUtils';
 
 interface MyBidsProps {
   products: Product[];
@@ -10,11 +11,6 @@ interface MyBidsProps {
   favoriteProductIds: number[];
   onToggleFavorite: (productId: number) => void;
 }
-
-const getHighestBidder = (product: Product): User | null => {
-    if (product.bids.length === 0) return null;
-    return product.bids.reduce((prev, current) => (prev.amount > current.amount) ? prev : current).bidder;
-};
 
 export const MyBids: React.FC<MyBidsProps> = ({ products, currentUser, onSelectProduct, favoriteProductIds, onToggleFavorite }) => {
   

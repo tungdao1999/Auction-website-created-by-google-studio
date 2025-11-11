@@ -3,6 +3,7 @@ import React from 'react';
 import { Product } from '../../types';
 import { useTimer } from './useTimer';
 import { HeartIcon, TrophyIcon } from '../../components/icons';
+import { getCurrentBidAmount } from '../../utils/auctionUtils';
 
 interface ProductCardProps {
   product: Product;
@@ -12,16 +13,9 @@ interface ProductCardProps {
   isWinner?: boolean;
 }
 
-const getCurrentBid = (product: Product) => {
-  if (product.bids.length === 0) {
-    return product.startingPrice;
-  }
-  return Math.max(...product.bids.map(b => b.amount));
-};
-
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProduct, isFavorited, onToggleFavorite, isWinner }) => {
   const { days, hours, minutes, isOver } = useTimer(product.endDate);
-  const currentBid = getCurrentBid(product);
+  const currentBid = getCurrentBidAmount(product);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when favoriting

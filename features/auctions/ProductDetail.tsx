@@ -1,7 +1,10 @@
 import React from 'react';
 import { Product, User } from '../../types';
 import { Timer } from './Timer';
-import { ArrowLeftIcon, HeartIcon, MessageSquareIcon } from '../../components/icons';
+import { ArrowLeftIcon, HeartIcon, MessageSquareIcon, TrophyIcon } from '../../components/icons';
+import { Modal } from '../../components/Modal';
+import { ProductCard } from './ProductCard';
+import { getCurrentBidAmount, getHighestBidder } from '../../utils/auctionUtils';
 
 interface ProductDetailProps {
   product: Product;
@@ -11,20 +14,17 @@ interface ProductDetailProps {
   isFavorited: boolean;
   onToggleFavorite: (productId: number) => void;
   onStartChat: (product: Product) => void;
+  products: Product[];
+  onSelectProduct: (product: Product) => void;
+  favoriteProductIds: number[];
 }
 
-const getCurrentBid = (product: Product) => {
-    if (product.bids.length === 0) {
-      return { amount: product.startingPrice, bidder: null };
-    }
-    const highestBid = product.bids.reduce((prev, current) => (prev.amount > current.amount) ? prev : current);
-    return { amount: highestBid.amount, bidder: highestBid.bidder };
-};
-
-export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, onPlaceBid, currentUser, isFavorited, onToggleFavorite, onStartChat }) => {
-  const { amount: currentBid, bidder: highestBidder } = getCurrentBid(product);
+export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, onPlaceBid, currentUser, isFavorited, onToggleFavorite, onStartChat, products, onSelectProduct, favoriteProductIds }) => {
+  const currentBid = getCurrentBidAmount(product);
+  const highestBidder = getHighestBidder(product);
   const [bidAmount, setBidAmount] = React.useState(currentBid + 1);
   const [error, setError] = React.useState('');
+  const [isSellerModalOpen, setIsSellerModalOpen] = React.useState(false);
 
   const handleBidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -48,6 +48,17 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, o
   
   const isAuctionOver = new Date() > product.endDate;
   const isOwner = product.seller.id === currentUser.id;
+  const isWinner = isAuctionOver && highestBidder?.id === currentUser.id;
+
+  const handleNavigateToProduct = (productToNavigate: Product) => {
+    onSelectProduct(productToNavigate);
+    setIsSellerModalOpen(false);
+  };
+
+  const otherSellerProducts = products.filter(
+    p => p.seller.id === product.seller.id && p.id !== product.id
+  );
+
 
   return (
     <>
@@ -72,14 +83,17 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, o
               </div>
 
               <p className="text-sm text-subtle mt-1">
-                Listed by {product.seller.name}
+                Listed by{' '}
+                <button onClick={() => setIsSellerModalOpen(true)} className="font-semibold text-primary hover:underline focus:outline-none">
+                  {product.seller.name}
+                </button>
               </p>
               <p className="text-base text-on-surface my-4 flex-grow">{product.description}</p>
               
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <p className="text-sm text-subtle">Current Bid</p>
+                    <p className="text-sm text-subtle">{isWinner ? 'Winning Bid' : 'Current Bid'}</p>
                     <p className="text-4xl font-bold text-primary">${currentBid.toFixed(2)}</p>
                   </div>
                   {highestBidder && <p className="text-sm text-right">by <span className="font-semibold">{highestBidder.name}</span></p>}
@@ -118,6 +132,11 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, o
                     </>
                   )}
                 </div>
+              ) : isWinner ? (
+                <div className="text-center font-bold text-xl text-green-700 bg-green-100 py-4 px-4 rounded-lg flex items-center justify-center gap-3">
+                  <TrophyIcon className="w-8 h-8 text-yellow-500" />
+                  <span>Congratulations, You Won!</span>
+                </div>
               ) : (
                 <div className="text-center font-bold text-xl text-red-600 bg-red-100 py-3 px-4 rounded-lg">
                   Auction Has Ended
@@ -137,6 +156,33 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, o
           </div>
         </div>
       </div>
+      <Modal
+        isOpen={isSellerModalOpen}
+        onClose={() => setIsSellerModalOpen(false)}
+        title={`More from ${product.seller.name}`}
+        size="xl"
+      >
+        {otherSellerProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto p-1">
+            {otherSellerProducts.map(p => {
+              const winner = getHighestBidder(p);
+              const isWinner = new Date() > p.endDate && winner?.id === currentUser.id;
+              return (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onSelectProduct={handleNavigateToProduct}
+                  isFavorited={favoriteProductIds.includes(p.id)}
+                  onToggleFavorite={onToggleFavorite}
+                  isWinner={isWinner}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-subtle text-center py-8">This seller has no other items for auction.</p>
+        )}
+      </Modal>
     </>
   );
 };

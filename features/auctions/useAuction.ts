@@ -3,6 +3,7 @@ import { Product, User } from '../../types';
 import * as backendService from '../../api/backendService';
 import { websocketService } from '../../api/websocketService';
 import { sendNotification } from '../../utils/notifications';
+import { getHighestBidder } from '../../utils/auctionUtils';
 
 // Helper to ensure date fields are Date objects after JSON serialization/deserialization
 const reviveProductDates = (product: any): Product => ({
@@ -13,11 +14,6 @@ const reviveProductDates = (product: any): Product => ({
     timestamp: new Date(bid.timestamp),
   })),
 });
-
-const getHighestBidder = (product: Product): User | null => {
-  if (!product.bids || product.bids.length === 0) return null;
-  return product.bids.reduce((prev, current) => (prev.amount > current.amount) ? prev : current).bidder;
-};
 
 
 export const useAuction = (currentUser: User | null) => {
@@ -95,7 +91,7 @@ export const useAuction = (currentUser: User | null) => {
                     icon: product.imageUrl,
                     tag: `win-${product.id}`
                 });
-                setNotifiedWinIds(prev => new Set(prev).add(product.id));
+                setNotifiedWinIds(prev => new Set(prev).add(product.id)); 
             }
         }
     });

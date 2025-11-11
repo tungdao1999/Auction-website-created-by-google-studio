@@ -1,26 +1,23 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Product } from '../../types';
+import { Product, User } from '../../types';
 import { ListingControls } from './ListingControls';
 import { ProductCard } from './ProductCard';
 import { Pagination } from './Pagination';
+import { getCurrentBidAmount, getHighestBidder } from '../../utils/auctionUtils';
 
 type SortOption = 'newly-listed' | 'ending-soon' | 'price-low-high' | 'price-high-low';
 const ITEMS_PER_PAGE = 8;
-
-const getCurrentBid = (product: Product) => {
-  if (product.bids.length === 0) return product.startingPrice;
-  return Math.max(...product.bids.map(b => b.amount));
-};
 
 interface AuctionListPageProps {
     products: Product[];
     onSelectProduct: (product: Product) => void;
     favoriteProductIds: number[];
     onToggleFavorite: (productId: number) => void;
+    currentUser: User;
 }
 
-export const AuctionListPage: React.FC<AuctionListPageProps> = ({ products, onSelectProduct, favoriteProductIds, onToggleFavorite }) => {
+export const AuctionListPage: React.FC<AuctionListPageProps> = ({ products, onSelectProduct, favoriteProductIds, onToggleFavorite, currentUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('newly-listed');
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,9 +37,9 @@ export const AuctionListPage: React.FC<AuctionListPageProps> = ({ products, onSe
             case 'ending-soon':
                 return a.endDate.getTime() - b.endDate.getTime();
             case 'price-low-high':
-                return getCurrentBid(a) - getCurrentBid(b);
+                return getCurrentBidAmount(a) - getCurrentBidAmount(b);
             case 'price-high-low':
-                return getCurrentBid(b) - getCurrentBid(a);
+                return getCurrentBidAmount(b) - getCurrentBidAmount(a);
             case 'newly-listed':
             default:
                 return b.id - a.id;
@@ -68,15 +65,20 @@ export const AuctionListPage: React.FC<AuctionListPageProps> = ({ products, onSe
       {paginatedProducts.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {paginatedProducts.map(product => (
-              <ProductCard 
-                key={product.id} 
-                product={product}
-                onSelectProduct={onSelectProduct}
-                isFavorited={favoriteProductIds.includes(product.id)}
-                onToggleFavorite={onToggleFavorite}
-              />
-            ))}
+            {paginatedProducts.map(product => {
+              const winner = getHighestBidder(product);
+              const isWinner = new Date() > product.endDate && winner?.id === currentUser.id;
+              return (
+                <ProductCard 
+                  key={product.id} 
+                  product={product}
+                  onSelectProduct={onSelectProduct}
+                  isFavorited={favoriteProductIds.includes(product.id)}
+                  onToggleFavorite={onToggleFavorite}
+                  isWinner={isWinner}
+                />
+              );
+            })}
           </div>
           <Pagination
             currentPage={currentPage}

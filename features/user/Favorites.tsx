@@ -1,16 +1,18 @@
 
 import React from 'react';
-import { Product } from '../../types';
+import { Product, User } from '../../types';
 import { ProductCard } from '../auctions/ProductCard';
+import { getHighestBidder } from '../../utils/auctionUtils';
 
 interface FavoritesProps {
   products: Product[];
   onSelectProduct: (product: Product) => void;
   favoriteProductIds: number[];
   onToggleFavorite: (productId: number) => void;
+  currentUser: User;
 }
 
-export const Favorites: React.FC<FavoritesProps> = ({ products, onSelectProduct, favoriteProductIds, onToggleFavorite }) => {
+export const Favorites: React.FC<FavoritesProps> = ({ products, onSelectProduct, favoriteProductIds, onToggleFavorite, currentUser }) => {
   const favoriteProducts = products.filter(p => favoriteProductIds.includes(p.id));
 
   return (
@@ -18,15 +20,20 @@ export const Favorites: React.FC<FavoritesProps> = ({ products, onSelectProduct,
       <h2 className="text-3xl font-bold text-on-surface mb-6">Your Favorites</h2>
       {favoriteProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {favoriteProducts.map(product => (
-            <ProductCard 
-              key={product.id} 
-              product={product}
-              onSelectProduct={onSelectProduct}
-              isFavorited={true}
-              onToggleFavorite={onToggleFavorite}
-            />
-          ))}
+          {favoriteProducts.map(product => {
+            const winner = getHighestBidder(product);
+            const isWinner = new Date() > product.endDate && winner?.id === currentUser.id;
+            return (
+              <ProductCard 
+                key={product.id} 
+                product={product}
+                onSelectProduct={onSelectProduct}
+                isFavorited={true}
+                onToggleFavorite={onToggleFavorite}
+                isWinner={isWinner}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-16 bg-surface rounded-lg shadow-md">

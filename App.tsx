@@ -126,6 +126,9 @@ const App: React.FC = () => {
             isFavorited={favoriteProductIds.includes(currentProduct.id)}
             onToggleFavorite={handleToggleFavorite}
             onStartChat={handleStartChat}
+            products={products}
+            onSelectProduct={handleSelectProduct}
+            favoriteProductIds={favoriteProductIds}
           />
         );
       case 'addItem':
@@ -133,7 +136,7 @@ const App: React.FC = () => {
       case 'myBids':
         return <MyBids products={products} currentUser={currentUser} onSelectProduct={handleSelectProduct} favoriteProductIds={favoriteProductIds} onToggleFavorite={handleToggleFavorite} />;
       case 'favorites':
-        return <Favorites products={products} onSelectProduct={handleSelectProduct} favoriteProductIds={favoriteProductIds} onToggleFavorite={handleToggleFavorite} />;
+        return <Favorites products={products} onSelectProduct={handleSelectProduct} favoriteProductIds={favoriteProductIds} onToggleFavorite={handleToggleFavorite} currentUser={currentUser} />;
       case 'myListings':
         return <MyListingsPage products={products} currentUser={currentUser} onSelectProduct={handleSelectProduct} favoriteProductIds={favoriteProductIds} onToggleFavorite={handleToggleFavorite} />;
       case 'chatList':
@@ -142,7 +145,7 @@ const App: React.FC = () => {
         return selectedConversation && <ChatView initialConversation={selectedConversation} currentUser={currentUser} onBack={() => setView('chatList')} />;
       case 'listings':
       default:
-        return <AuctionListPage products={products} onSelectProduct={handleSelectProduct} favoriteProductIds={favoriteProductIds} onToggleFavorite={handleToggleFavorite} />;
+        return <AuctionListPage products={products} onSelectProduct={handleSelectProduct} favoriteProductIds={favoriteProductIds} onToggleFavorite={handleToggleFavorite} currentUser={currentUser} />;
     }
   };
 

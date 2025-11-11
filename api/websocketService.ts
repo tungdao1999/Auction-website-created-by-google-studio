@@ -1,6 +1,7 @@
 import { MOCK_PRODUCTS } from '../constants';
 import { Product, Bid, User, Conversation, Message } from '../types';
 import { generateBotResponse } from './geminiService';
+import { getCurrentBidAmount } from '../utils/auctionUtils';
 
 // Simulate a 'server' that holds the true state.
 let products: Product[] = MOCK_PRODUCTS;
@@ -8,16 +9,6 @@ let conversations: Conversation[] = [];
 let productListeners: ((product: Product) => void)[] = [];
 const chatListeners = new Map<string, ((conversation: Conversation) => void)[]>();
 
-
-/**
- * Gets the current highest bid for a product.
- */
-const getCurrentBidAmount = (product: Product): number => {
-  if (product.bids.length === 0) {
-    return product.startingPrice;
-  }
-  return Math.max(...product.bids.map(b => b.amount));
-};
 
 /**
  * Notifies all subscribed listeners about a product update.

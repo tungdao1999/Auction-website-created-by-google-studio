@@ -5,10 +5,17 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  size?: 'md' | 'lg' | 'xl';
 }
 
-export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({ isOpen, onClose, title, children }) => {
+export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({ isOpen, onClose, title, children, size = 'md' }) => {
   if (!isOpen) return null;
+
+  const sizeClasses = {
+    md: 'max-w-md',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
+  };
 
   return (
     <div 
@@ -16,7 +23,7 @@ export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({ isOpen, onClose
       onClick={onClose}
     >
       <div 
-        className="bg-surface rounded-lg shadow-xl w-full max-w-md m-auto relative"
+        className={`bg-surface rounded-lg shadow-xl w-full ${sizeClasses[size]} m-auto relative`}
         onClick={e => e.stopPropagation()} // Prevent click inside modal from closing it
       >
         <div className="flex justify-between items-center p-4 border-b">
